@@ -205,6 +205,15 @@ export const DockAbstractAppIcon = GObject.registerClass({
         });
         this.notify('urgent');
 
+        this._hoverScaleId = 0;
+        this.set_pivot_point(0.5, 0.5);
+        this._signalsHandler.add(
+            Docking.DockManager.settings,
+            'changed::enable-hover-scale',
+            () => this._updateHoverScale()
+        );
+        this._updateHoverScale();
+
         this._progressOverlayArea = null;
         this._progress = 0;
 
@@ -236,8 +245,43 @@ export const DockAbstractAppIcon = GObject.registerClass({
         this._previewMenu = null;
     }
 
+    _updateHoverScale() {
+        if (this._hoverScaleId) {
+            this.disconnect(this._hoverScaleId);
+            this._hoverScaleId = 0;
+        }
+
+        if (!Docking.DockManager.settings.enableHoverScale)
+            return;
+
+        this._hoverScaleId = this.connect('notify::hover', () => {
+            if (this.hover) {
+                this.ease({
+                    scale_x: 1.2,
+                    scale_y: 1.2,
+                    translation_y: -8,
+                    duration: 250,
+                    mode: Clutter.AnimationMode.EASE_OUT_BACK,
+                });
+            } else {
+                this.ease({
+                    scale_x: 1.0,
+                    scale_y: 1.0,
+                    translation_y: 0,
+                    duration: 180,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            }
+        });
+    }
+
     _onDestroy() {
         super._onDestroy();
+
+        if (this._hoverScaleId) {
+            this.disconnect(this._hoverScaleId);
+            this._hoverScaleId = 0;
+        }
 
         // This is necessary due to an upstream bug
         // https://bugzilla.gnome.org/show_bug.cgi?id=757556
@@ -1437,6 +1481,45 @@ export const DockShowAppsIcon = GObject.registerClass({
         this._menuTimeoutId = 0;
 
         this._maybeEnablePopupGestures();
+
+        this.set_pivot_point(0.5, 0.5);
+        this._showAppsHoverScaleId = 0;
+        if (Docking.DockManager.settings.enableHoverScale)
+            this._connectShowAppsHoverScale();
+
+        Docking.DockManager.settings.connect(
+            'changed::enable-hover-scale',
+            () => {
+                if (this._showAppsHoverScaleId) {
+                    this.disconnect(this._showAppsHoverScaleId);
+                    this._showAppsHoverScaleId = 0;
+                }
+                if (Docking.DockManager.settings.enableHoverScale)
+                    this._connectShowAppsHoverScale();
+            }
+        );
+    }
+
+    _connectShowAppsHoverScale() {
+        this._showAppsHoverScaleId = this.connect('notify::hover', () => {
+            if (this.hover) {
+                this.ease({
+                    scale_x: 1.2,
+                    scale_y: 1.2,
+                    translation_y: -8,
+                    duration: 250,
+                    mode: Clutter.AnimationMode.EASE_OUT_BACK,
+                });
+            } else {
+                this.ease({
+                    scale_x: 1.0,
+                    scale_y: 1.0,
+                    translation_y: 0,
+                    duration: 180,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            }
+        });
     }
 
     _createIcon(size) {

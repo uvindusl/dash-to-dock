@@ -640,5 +640,10 @@
       <summary>Wether the application-provioded counter via Unity API should override the notifications or be summed to it</summary>
       <description>If an application provides a counter through the Unity API, then such value will be used. Otherwise the counter will be summed with the unread notification numbers (if enabled)</description>
     </key>
+    <key type="b" name="enable-hover-scale">
+      <default>true</default>
+      <summary>Enable hover scale effect</summary>
+      <description>When enabled, dock icons scale up with a pop animation when hovered.</description>
+    </key>
   </schema>
 </schemalist>

@@ -191,6 +191,7 @@ export const DockDash = GObject.registerClass({
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.FILL,
             vertical: !this._isHorizontal,
+            clip_to_allocation: false,
         });
         this._boxContainer.add_style_class_name(Theming.PositionStyleClass[this._position]);
 
@@ -531,6 +532,7 @@ export const DockDash = GObject.registerClass({
 
         const item = new DockDashItemContainer(this._position);
         item.setChild(appIcon);
+        item.clip_to_allocation = false;
 
         appIcon.connectObject('notify::hover', a => this._ensureItemVisibility(a), this);
         appIcon.connectObject('clicked', actor => {

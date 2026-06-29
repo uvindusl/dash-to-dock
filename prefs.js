@@ -1162,6 +1162,10 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('show_overview_on_startup_switch'),
             'active', Gio.SettingsBindFlags.INVERT_BOOLEAN);
 
+        this._settings.bind('enable-hover-scale',
+            this._builder.get_object('enable_hover_scale_switch'),
+            'active', Gio.SettingsBindFlags.DEFAULT);
+
         // About Panel
 
         this._builder.get_object('extension_version').set_label(
