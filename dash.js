@@ -142,6 +142,7 @@ export const DockDash = GObject.registerClass({
             name: 'dash',
             offscreen_redirect: Clutter.OffscreenRedirect.ALWAYS,
             layout_manager: new Clutter.BinLayout(),
+            clip_to_allocation: false,
         });
 
         this._maxWidth = -1;
@@ -165,6 +166,7 @@ export const DockDash = GObject.registerClass({
         this._showLabelTimeoutId = 0;
         this._resetHoverTimeoutId = 0;
         this._labelShowing = false;
+        this._dockHoverCount = 0;
 
         this._dashContainer = new St.BoxLayout({
             name: 'dashtodockDashContainer',
@@ -173,6 +175,7 @@ export const DockDash = GObject.registerClass({
             vertical: !this._isHorizontal,
             y_expand: this._isHorizontal,
             x_expand: !this._isHorizontal,
+            clip_to_allocation: false,
         });
 
         this._scrollView = new St.ScrollView({
@@ -182,6 +185,7 @@ export const DockDash = GObject.registerClass({
             x_expand: this._isHorizontal,
             y_expand: !this._isHorizontal,
             enable_mouse_scrolling: false,
+            clip_to_allocation: false,
         });
 
         this._scrollView.connect('scroll-event', this._onScrollEvent.bind(this));
@@ -216,6 +220,7 @@ export const DockDash = GObject.registerClass({
         this._showAppsIcon.x_expand = false;
         this._showAppsIcon.y_expand = false;
         this.showAppsButton.connect('notify::hover', a => {
+            this._onIconHoverChanged(a.hover);
             if (this._showAppsIcon.get_parent() === this._boxContainer)
                 this._ensureItemVisibility(a);
         });
@@ -534,7 +539,10 @@ export const DockDash = GObject.registerClass({
         item.setChild(appIcon);
         item.clip_to_allocation = false;
 
-        appIcon.connectObject('notify::hover', a => this._ensureItemVisibility(a), this);
+        appIcon.connectObject('notify::hover', a => {
+            this._onIconHoverChanged(a.hover);
+            this._ensureItemVisibility(a);
+        }, this);
         appIcon.connectObject('clicked', actor => {
             ensureActorVisibleInScrollView(this._scrollView, actor);
         }, this);
@@ -589,6 +597,25 @@ export const DockDash = GObject.registerClass({
                 this._requiresVisibilityTimeout = 0;
                 this.requiresVisibility = false;
             });
+    }
+
+    _onIconHoverChanged(hovered) {
+        const wasHovered = this._dockHoverCount > 0;
+        this._dockHoverCount += hovered ? 1 : -1;
+
+        const isHovered = this._dockHoverCount > 0;
+        if (isHovered !== wasHovered) {
+            if (isHovered)
+                this._expandDock();
+            else
+                this._shrinkDock();
+        }
+    }
+
+    _expandDock() {
+    }
+
+    _shrinkDock() {
     }
 
     /**

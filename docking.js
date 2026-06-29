@@ -164,8 +164,20 @@ const DashSlideContainer = GObject.registerClass({
 
         this.child.allocate(childBox);
 
-        this.child.set_clip(-childBox.x1, -childBox.y1,
-            -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        const popExtra = 120;
+        if (this.side === St.Side.BOTTOM) {
+            this.child.set_clip(-childBox.x1, -childBox.y1 - popExtra,
+                -childBox.x1 + availWidth, -childBox.y1 + availHeight + popExtra);
+        } else if (this.side === St.Side.TOP) {
+            this.child.set_clip(-childBox.x1, -childBox.y1,
+                -childBox.x1 + availWidth, -childBox.y1 + availHeight + popExtra);
+        } else if (this.side === St.Side.LEFT) {
+            this.child.set_clip(-childBox.x1, -childBox.y1,
+                -childBox.x1 + availWidth + popExtra, -childBox.y1 + availHeight);
+        } else {
+            this.child.set_clip(-childBox.x1 - popExtra, -childBox.y1,
+                -childBox.x1 + availWidth + popExtra, -childBox.y1 + availHeight);
+        }
     }
 
     /**

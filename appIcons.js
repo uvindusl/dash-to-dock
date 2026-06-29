@@ -205,8 +205,9 @@ export const DockAbstractAppIcon = GObject.registerClass({
         });
         this.notify('urgent');
 
+        this.clip_to_allocation = false;
         this._hoverScaleId = 0;
-        this.set_pivot_point(0.5, 0.5);
+        this._updateHoverScalePivot();
         this._signalsHandler.add(
             Docking.DockManager.settings,
             'changed::enable-hover-scale',
@@ -245,6 +246,24 @@ export const DockAbstractAppIcon = GObject.registerClass({
         this._previewMenu = null;
     }
 
+    _updateHoverScalePivot() {
+        const position = Utils.getPosition();
+        switch (position) {
+        case St.Side.BOTTOM:
+            this.set_pivot_point(0.5, 1.0);
+            break;
+        case St.Side.TOP:
+            this.set_pivot_point(0.5, 0.0);
+            break;
+        case St.Side.LEFT:
+            this.set_pivot_point(0.0, 0.5);
+            break;
+        case St.Side.RIGHT:
+            this.set_pivot_point(1.0, 0.5);
+            break;
+        }
+    }
+
     _updateHoverScale() {
         if (this._hoverScaleId) {
             this.disconnect(this._hoverScaleId);
@@ -257,18 +276,16 @@ export const DockAbstractAppIcon = GObject.registerClass({
         this._hoverScaleId = this.connect('notify::hover', () => {
             if (this.hover) {
                 this.ease({
-                    scale_x: 1.2,
-                    scale_y: 1.2,
-                    translation_y: -8,
-                    duration: 250,
+                    scale_x: 1.5,
+                    scale_y: 1.5,
+                    duration: 300,
                     mode: Clutter.AnimationMode.EASE_OUT_BACK,
                 });
             } else {
                 this.ease({
                     scale_x: 1.0,
                     scale_y: 1.0,
-                    translation_y: 0,
-                    duration: 180,
+                    duration: 200,
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 });
             }
@@ -1482,7 +1499,8 @@ export const DockShowAppsIcon = GObject.registerClass({
 
         this._maybeEnablePopupGestures();
 
-        this.set_pivot_point(0.5, 0.5);
+        this.clip_to_allocation = false;
+        this._updateShowAppsHoverScalePivot();
         this._showAppsHoverScaleId = 0;
         if (Docking.DockManager.settings.enableHoverScale)
             this._connectShowAppsHoverScale();
@@ -1500,22 +1518,38 @@ export const DockShowAppsIcon = GObject.registerClass({
         );
     }
 
+    _updateShowAppsHoverScalePivot() {
+        const position = Utils.getPosition();
+        switch (position) {
+        case St.Side.BOTTOM:
+            this.set_pivot_point(0.5, 1.0);
+            break;
+        case St.Side.TOP:
+            this.set_pivot_point(0.5, 0.0);
+            break;
+        case St.Side.LEFT:
+            this.set_pivot_point(0.0, 0.5);
+            break;
+        case St.Side.RIGHT:
+            this.set_pivot_point(1.0, 0.5);
+            break;
+        }
+    }
+
     _connectShowAppsHoverScale() {
         this._showAppsHoverScaleId = this.connect('notify::hover', () => {
             if (this.hover) {
                 this.ease({
-                    scale_x: 1.2,
-                    scale_y: 1.2,
-                    translation_y: -8,
-                    duration: 250,
+                    scale_x: 1.5,
+                    scale_y: 1.5,
+                    duration: 300,
                     mode: Clutter.AnimationMode.EASE_OUT_BACK,
                 });
             } else {
                 this.ease({
                     scale_x: 1.0,
                     scale_y: 1.0,
-                    translation_y: 0,
-                    duration: 180,
+                    duration: 200,
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 });
             }
