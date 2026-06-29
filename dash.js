@@ -189,6 +189,12 @@ export const DockDash = GObject.registerClass({
         });
 
         this._scrollView.connect('scroll-event', this._onScrollEvent.bind(this));
+        this._scrollView.connect('notify::allocation', () => {
+            this._scrollView.forall(c => {
+                if (c.has_clip)
+                    c.remove_clip();
+            });
+        });
 
         this._boxContainer = new St.BoxLayout({
             name: 'dashtodockBoxContainer',
@@ -236,7 +242,13 @@ export const DockDash = GObject.registerClass({
             style_class: 'dash-background',
             y_expand: this._isHorizontal,
             x_expand: !this._isHorizontal,
+            clip_to_allocation: false,
         });
+        const bgPivotY = this._position === St.Side.BOTTOM ? 1.0 :
+            this._position === St.Side.TOP ? 0.0 : 0.5;
+        const bgPivotX = this._position === St.Side.LEFT ? 0.0 :
+            this._position === St.Side.RIGHT ? 1.0 : 0.5;
+        this._background.set_pivot_point(bgPivotX, bgPivotY);
 
         const sizerBox = new Clutter.Actor();
         sizerBox.add_constraint(new Clutter.BindConstraint({
@@ -600,6 +612,8 @@ export const DockDash = GObject.registerClass({
     }
 
     _onIconHoverChanged(hovered) {
+        if (!Docking.DockManager.settings.enableHoverScale)
+            return;
         const wasHovered = this._dockHoverCount > 0;
         this._dockHoverCount += hovered ? 1 : -1;
 
@@ -613,9 +627,28 @@ export const DockDash = GObject.registerClass({
     }
 
     _expandDock() {
+        if (this._isHorizontal) {
+            this._background.ease({
+                scale_y: 1.3,
+                duration: 300,
+                mode: Clutter.AnimationMode.EASE_OUT_BACK,
+            });
+        } else {
+            this._background.ease({
+                scale_x: 1.3,
+                duration: 300,
+                mode: Clutter.AnimationMode.EASE_OUT_BACK,
+            });
+        }
     }
 
     _shrinkDock() {
+        this._background.ease({
+            scale_y: 1.0,
+            scale_x: 1.0,
+            duration: 200,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
     }
 
     /**
